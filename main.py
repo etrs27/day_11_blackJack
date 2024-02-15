@@ -34,7 +34,6 @@ def blackjack():
         b_total -= betted
       stats['player']['money'] = b_total
       print(f"Your balance: {b_total}")
-      return b_total
   
   def calculate_total(who):
     return sum(stats[who]['cards'])
@@ -45,21 +44,20 @@ def blackjack():
         stats[player]['cards'].append(random.choice(cards))
     print(f"Dealer's hand: {stats['dealer']['cards'][1]}")
     print(f"Your hand: {stats['player']['cards']}. Score: {calculate_total('player')}")
-  
-  def less_than_17(dealer_total):
-    if dealer_total < 17:
-      stats['dealer']['cards'].append(random.choice(cards))
-      dealer_total = calculate_total("dealer")
-      less_than_17(dealer_total)
-    return dealer_total
-  
+
   def handle_ace(who):
     for card in range(len(stats[who]['cards'])):
       if stats[who]['cards'][card] == 11:
-        print(f"{who.title()} hand: {stats[who]['cards']}")
-        ace = input("Type 'y' for 1 or type 'n' for 11? ")
-        if ace == 'y':
+        if calculate_total(who) > 21:
           stats[who]['cards'][card] = 1
+          
+  def less_than_17(dealer_total):
+    if dealer_total < 17:
+      stats['dealer']['cards'].append(random.choice(cards))
+      handle_ace('dealer')
+      dealer_total = calculate_total("dealer")
+      less_than_17(dealer_total)
+    return calculate_total('dealer')
 
   print(f"Bet: {bet('pregame','none')}")
   deal_cards()
@@ -67,7 +65,7 @@ def blackjack():
   while active_round:
     p_total = calculate_total("player")
     if p_total == 21:
-      print("You win!")
+      print("Blackjack!")
       bet("postgame", "win")
       active_round = False
     else:
@@ -78,9 +76,10 @@ def blackjack():
         if d_total == 21:
           print("You lose.")
           bet("postgame", "lose")
-        handle_ace("dealer")
+          active_round = False
         handle_d_hand = less_than_17(d_total)
         d_total = handle_d_hand
+        handle_ace("dealer")
         if p_total == d_total:
           print("Draw.")
         if d_total > 21 or d_total < p_total and p_total <= 21:
@@ -102,13 +101,16 @@ def blackjack():
           bet("postgame", "lose")
           active_round = False
     if not active_round:
-      continue_game = input("Type 'y' to play another round. \n")
-      if continue_game == 'y':
-        for n in range(2):
-          for player in stats:
-            stats[player]['cards'] = []
-        clear()
-        blackjack()
+      if stats['player']['money'] == 0:
+        print("You have no more funds to play. Goodbye.")
       else:
-        active_round = False
+        continue_game = input("Type 'y' to play another round. \n")
+        if continue_game == 'y':
+          for n in range(2):
+            for player in stats:
+              stats[player]['cards'] = []
+          clear()
+          blackjack()
+        else:
+          active_round = False
 blackjack()
