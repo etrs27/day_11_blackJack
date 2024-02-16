@@ -55,8 +55,8 @@ def blackjack():
     if dealer_total < 17:
       stats['dealer']['cards'].append(random.choice(cards))
       handle_ace('dealer')
-      dealer_total = calculate_total("dealer")
-      less_than_17(dealer_total)
+      d_total = calculate_total("dealer")
+      less_than_17(d_total)
     return calculate_total('dealer')
 
   print(f"Bet: {bet('pregame','none')}")
@@ -65,21 +65,23 @@ def blackjack():
   while active_round:
     p_total = calculate_total("player")
     if p_total == 21:
-      print("Blackjack!")
+      if len(stats['player']['cards']) == 2:
+        print("Blackjack!")
+      else:
+        print("You win!")
       bet("postgame", "win")
       active_round = False
     else:
       hit = str(input("Type 'y' to hit or 'n' to stand: \n")).lower().strip()
       if hit == 'n':
+        handle_ace("dealer")
         d_total = calculate_total("dealer")
         p_total = calculate_total("player")
         if d_total == 21:
           print("You lose.")
           bet("postgame", "lose")
           active_round = False
-        handle_d_hand = less_than_17(d_total)
-        d_total = handle_d_hand
-        handle_ace("dealer")
+        d_total = less_than_17(d_total)
         if p_total == d_total:
           print("Draw.")
         if d_total > 21 or d_total < p_total and p_total <= 21:
